@@ -15,7 +15,7 @@ public:
 
   bool should_quit();
   void input();
-  void update(float dt);
+  void update(double dt);
   void render();
 };
 
