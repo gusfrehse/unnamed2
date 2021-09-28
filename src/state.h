@@ -13,10 +13,10 @@ class state {
 public:
   state(int width, int height);
 
-  bool should_quit();
-  void input();
-  void update(double dt);
-  void render();
+  auto should_quit() const -> bool;
+  auto input() -> void;
+  auto update(double dt) -> void;
+  auto render() -> void;
 };
 
 #endif
