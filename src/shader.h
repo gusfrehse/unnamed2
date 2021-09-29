@@ -5,6 +5,7 @@
 #include <unordered_map>
 #include <gl/glew.h>
 #include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
 
 class shader {
   std::string source;
@@ -29,6 +30,7 @@ public:
   auto link() const -> void;
   auto get_id() const -> GLuint;
 
-  auto uniform(const std::string &name, glm::vec3 value);
+  auto uniform(const std::string &name, const glm::vec3 &value) -> void;
+  auto uniform(const std::string &name, const glm::mat4 &value) -> void;
 };
 #endif

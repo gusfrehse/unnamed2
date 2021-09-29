@@ -15,9 +15,13 @@
 #define FOVY 90.0F
 #define NEAR_PLANE 0.1F
 
+// clang-format off
 const std::array<float, 9> VERTICES = {
-    0.0F, 0.5F, 0.0F, -0.5F, -0.5F, 0.0F, 0.5F, -0.5F, 0.0F,
+     0.0F,  0.5F, -3.0F,
+    -0.5F, -0.5F, -3.0F,
+     0.5F, -0.5F, -3.0F,
 };
+// clang-format on
 
 state::state(int width, int height)
     : width(width), height(height),
@@ -40,9 +44,9 @@ state::state(int width, int height)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, OPENGL_MINOR_VERSION);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
-  window =
-      SDL_CreateWindow("", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED,
-                       width, height, SDL_WINDOW_OPENGL);
+  window = SDL_CreateWindow("unnamed2", SDL_WINDOWPOS_UNDEFINED,
+                            SDL_WINDOWPOS_UNDEFINED, width, height,
+                            SDL_WINDOW_OPENGL);
 
   context = SDL_GL_CreateContext(window);
 
@@ -102,6 +106,11 @@ state::state(int width, int height)
 
   glUseProgram(shader_program.get_id());
   glBindVertexArray(vertex_array);
+
+  auto view_matrix = cam.view_mat();
+  auto proj_matrix = proj.proj_mat();
+  auto mvp = proj_matrix * view_matrix;
+  shader_program.uniform("mvp", mvp);
 }
 
 auto state::input() -> void {
@@ -117,6 +126,7 @@ auto state::input() -> void {
 auto state::update(double dt) -> void {}
 
 auto state::render() -> void {
+
   glClear(GL_COLOR_BUFFER_BIT);
   glDrawArrays(GL_TRIANGLES, 0, 3);
   SDL_GL_SwapWindow(window);

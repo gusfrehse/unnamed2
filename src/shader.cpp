@@ -3,6 +3,9 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <glm/vec3.hpp>
+#include <glm/mat4x4.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #include "shader.h"
 
@@ -74,6 +77,10 @@ auto shader_program::link() const -> void {
   }
 }
 
-auto shader_program::uniform(const std::string &name, glm::vec3 value) {
-  glProgramUniform1fv(id, get_uniform_location(name), 3, &value[0]);
+auto shader_program::uniform(const std::string &name, const glm::vec3 &value) -> void {
+  glProgramUniform1fv(id, get_uniform_location(name), 3, glm::value_ptr(value));
+}
+
+auto shader_program::uniform(const std::string &name, const glm::mat4 &value) -> void{
+  glProgramUniformMatrix4fv(id, get_uniform_location(name), 1, GL_FALSE, glm::value_ptr(value));
 }
