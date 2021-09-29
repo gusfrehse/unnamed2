@@ -15,7 +15,8 @@ find_package(glm CONFIG REQUIRED)
 add_executable(unnamed2
     src/main.cpp
     src/state.cpp
-    src/camera.cpp)
+    src/camera.cpp
+    src/shader.cpp)
 
 target_link_libraries(unnamed2 PRIVATE SDL2::SDL2 SDL2::SDL2main)
 target_link_libraries(unnamed2 PRIVATE GLEW::GLEW)

@@ -6,12 +6,12 @@
 
 #include <gl/glew.h>
 
+#include "shader.h"
 #include "state.h"
 
 #define COLOR_COMPONENT_SIZE 8
 #define OPENGL_MAJOR_VERSION 4
 #define OPENGL_MINOR_VERSION 5
-#define INFO_LOG_LENGTH 512
 #define FOVY 90.0F
 #define NEAR_PLANE 0.1F
 
@@ -70,53 +70,18 @@ state::state(int width, int height)
   glClearColor(1.0F, 0.0F, 0.0F, 1.0F);
   glViewport(0, 0, width, height);
 
-  std::stringstream vert_shader_ss;
-  {
-    std::ifstream vert_shader_is("src/vert.glsl");
-    vert_shader_ss << vert_shader_is.rdbuf();
-  }
+  shader vert_shader{"src/vert.glsl", GL_VERTEX_SHADER};
+  shader frag_shader{"src/frag.glsl", GL_FRAGMENT_SHADER};
 
-  std::stringstream frag_shader_ss;
-  {
-    std::ifstream frag_shader_is("src/frag.glsl");
-    frag_shader_ss << frag_shader_is.rdbuf();
-  }
+  shader_program shader_program{};
 
-  std::cout << "[i] Vertex shader:\n" << vert_shader_ss.str() << std::endl;
-  std::cout << "[i] Fragment shader:\n" << frag_shader_ss.str() << std::endl;
+  vert_shader.compile();
+  frag_shader.compile();
 
-  auto vert_shader = glCreateShader(GL_VERTEX_SHADER);
-  auto frag_shader = glCreateShader(GL_FRAGMENT_SHADER);
+  shader_program.attach(vert_shader);
+  shader_program.attach(frag_shader);
 
-  {
-    auto source = vert_shader_ss.str();
-    const auto *source_c_str = source.c_str();
-    glShaderSource(vert_shader, 1, &source_c_str, 0);
-  }
-
-  {
-    auto source = frag_shader_ss.str();
-    const auto *source_c_str = source.c_str();
-    glShaderSource(frag_shader, 1, &source_c_str, 0);
-  }
-
-  glCompileShader(vert_shader);
-  glCompileShader(frag_shader);
-
-  auto shader_program = glCreateProgram();
-  glAttachShader(shader_program, vert_shader);
-  glAttachShader(shader_program, frag_shader);
-  glLinkProgram(shader_program);
-
-  GLint status = GL_TRUE;
-  glGetProgramiv(shader_program, GL_LINK_STATUS, &status);
-  if (status == GL_FALSE) {
-    GLint max_length = 0;
-    std::array<GLchar, INFO_LOG_LENGTH> arr{};
-    glGetProgramInfoLog(shader_program, INFO_LOG_LENGTH, &max_length,
-                        (GLchar *)arr.data());
-    std::cerr << "[-] Shader Info Log: " << (char *)arr.data() << std::endl;
-  }
+  shader_program.link();
 
   GLuint buffer{};
   glCreateBuffers(1, &buffer);
@@ -135,7 +100,7 @@ state::state(int width, int height)
   glVertexArrayAttribFormat(vertex_array, 0, 3, GL_FLOAT, GL_FALSE, 0);
   glVertexArrayAttribBinding(vertex_array, 0, buffer_binding_index);
 
-  glUseProgram(shader_program);
+  glUseProgram(shader_program.get_id());
   glBindVertexArray(vertex_array);
 }
 
