@@ -12,12 +12,17 @@
 #define OPENGL_MAJOR_VERSION 4
 #define OPENGL_MINOR_VERSION 5
 #define INFO_LOG_LENGTH 512
+#define FOVY 90.0F
+#define NEAR_PLANE 0.1F
 
 const std::array<float, 9> VERTICES = {
     0.0F, 0.5F, 0.0F, -0.5F, -0.5F, 0.0F, 0.5F, -0.5F, 0.0F,
 };
 
-state::state(int width, int height) : width(width), height(height) {
+state::state(int width, int height)
+    : width(width), height(height),
+      proj((float)width / (float)height, FOVY, NEAR_PLANE),
+      cam(glm::vec3(0.0F, 0.0F, 0.0F), 0.0F, 0.0F) {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     std::cerr << "[-] Could not initialize SDL: " << SDL_GetError()
               << std::endl;

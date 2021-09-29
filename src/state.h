@@ -2,6 +2,7 @@
 #define STATE_H
 
 #include <SDL.h>
+#include "camera.h"
 
 class state {
   bool exit = false;
@@ -9,6 +10,9 @@ class state {
   SDL_GLContext context;
   int width;
   int height;
+  
+  projection proj;
+  camera cam;
 
 public:
   state(int width, int height);

@@ -5,9 +5,10 @@
 
 class camera {
   glm::vec3 eye;
-  glm::vec3 dir;
   float hangle;
   float vangle;
+public:
+  camera(glm::vec3 eye, float hangle, float vangle);
   auto view_mat() const -> glm::mat4;
 };
 
@@ -16,6 +17,7 @@ class projection {
   float fovy;
   float near_plane;
 
+public:
   projection(float aspect_ratio, float fovy, float near_plane);
 
   auto proj_mat() const -> glm::mat4;

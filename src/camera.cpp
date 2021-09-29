@@ -6,6 +6,9 @@
 
 #include "camera.h"
 
+camera::camera(glm::vec3 eye, float hangle, float vangle)
+    : eye(eye), hangle(hangle), vangle(vangle) {}
+
 auto camera::view_mat() const -> glm::mat4 {
   return glm::rotate(
       glm::rotate(glm::mat4(1.0F), hangle, glm::vec3(0.0F, 1.0F, 0.0F)), vangle,
