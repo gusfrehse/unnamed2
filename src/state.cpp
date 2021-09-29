@@ -1,11 +1,10 @@
 #include <array>
-#include <iostream>
-#include <vector>
 #include <fstream>
+#include <iostream>
 #include <sstream>
+#include <vector>
 
 #include <gl/glew.h>
-
 
 #include "state.h"
 
@@ -15,9 +14,7 @@
 #define INFO_LOG_LENGTH 512
 
 const std::array<float, 9> VERTICES = {
-     0.0F,  0.5F, 0.0F,
-    -0.5F, -0.5F, 0.0F,
-     0.5F, -0.5F, 0.0F,
+    0.0F, 0.5F, 0.0F, -0.5F, -0.5F, 0.0F, 0.5F, -0.5F, 0.0F,
 };
 
 state::state(int width, int height) : width(width), height(height) {
@@ -91,7 +88,7 @@ state::state(int width, int height) : width(width), height(height) {
     const auto *source_c_str = source.c_str();
     glShaderSource(vert_shader, 1, &source_c_str, 0);
   }
-  
+
   {
     auto source = frag_shader_ss.str();
     const auto *source_c_str = source.c_str();
@@ -111,13 +108,15 @@ state::state(int width, int height) : width(width), height(height) {
   if (status == GL_FALSE) {
     GLint max_length = 0;
     std::array<GLchar, INFO_LOG_LENGTH> arr{};
-    glGetProgramInfoLog(shader_program, INFO_LOG_LENGTH, &max_length, (GLchar *) arr.data());
-    std::cerr << "[-] Shader Info Log: " << (char *) arr.data() << std::endl;
+    glGetProgramInfoLog(shader_program, INFO_LOG_LENGTH, &max_length,
+                        (GLchar *)arr.data());
+    std::cerr << "[-] Shader Info Log: " << (char *)arr.data() << std::endl;
   }
 
   GLuint buffer{};
   glCreateBuffers(1, &buffer);
-  glNamedBufferData(buffer, VERTICES.size() * sizeof(float), VERTICES.data(), GL_STATIC_DRAW);
+  glNamedBufferData(buffer, VERTICES.size() * sizeof(float), VERTICES.data(),
+                    GL_STATIC_DRAW);
 
   GLuint vertex_array{};
   glCreateVertexArrays(1, &vertex_array);
@@ -125,7 +124,8 @@ state::state(int width, int height) : width(width), height(height) {
   glEnableVertexArrayAttrib(vertex_array, 0);
 
   const GLuint buffer_binding_index = 0;
-  glVertexArrayVertexBuffer(vertex_array, buffer_binding_index, buffer, 0, 3 * sizeof(GLfloat));
+  glVertexArrayVertexBuffer(vertex_array, buffer_binding_index, buffer, 0,
+                            3 * sizeof(GLfloat));
 
   glVertexArrayAttribFormat(vertex_array, 0, 3, GL_FLOAT, GL_FALSE, 0);
   glVertexArrayAttribBinding(vertex_array, 0, buffer_binding_index);
@@ -148,7 +148,7 @@ auto state::update(double dt) -> void {}
 
 auto state::render() -> void {
   glClear(GL_COLOR_BUFFER_BIT);
-  glDrawArrays(GL_TRIANGLES, 0 , 3);
+  glDrawArrays(GL_TRIANGLES, 0, 3);
   SDL_GL_SwapWindow(window);
 }
 
