@@ -1,3 +1,6 @@
 .clang-tidy
 .cache/*
+.vs/*
+out/*
 build/*
+CMakeSettings.json

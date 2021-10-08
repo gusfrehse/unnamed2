@@ -7,9 +7,15 @@ class camera {
   glm::vec3 eye;
   float hangle;
   float vangle;
+
+  float sensitivity;
+  float speed;
+  
 public:
-  camera(glm::vec3 eye, float hangle, float vangle);
+  camera(glm::vec3 eye, float hangle, float vangle, float sensitivity, float speed);
   auto view_mat() const -> glm::mat4;
+  auto update_hangle(float angle, double dt) -> void;
+  auto update_vangle(float angle, double dt) -> void;
 };
 
 class projection {

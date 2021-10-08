@@ -14,6 +14,8 @@
 #define OPENGL_MINOR_VERSION 5
 #define FOVY 90.0F
 #define NEAR_PLANE 0.1F
+#define CAM_SENSITIVITY 0.001F
+#define CAM_SPEED 1.0F
 
 // clang-format off
 const std::array<float, 9> VERTICES = {
@@ -26,7 +28,7 @@ const std::array<float, 9> VERTICES = {
 state::state(int width, int height)
     : width(width), height(height),
       proj((float)width / (float)height, FOVY, NEAR_PLANE),
-      cam(glm::vec3(0.0F, 0.0F, 0.0F), 0.0F, 0.0F) {
+      cam(glm::vec3(0.0F, 0.0F, 0.0F), 0.0F, 0.0F, CAM_SENSITIVITY, CAM_SPEED) {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     std::cerr << "[-] Could not initialize SDL: " << SDL_GetError()
               << std::endl;
@@ -43,6 +45,8 @@ state::state(int width, int height)
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, OPENGL_MAJOR_VERSION);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, OPENGL_MINOR_VERSION);
   SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+  SDL_SetRelativeMouseMode(SDL_TRUE);
 
   window = SDL_CreateWindow("unnamed2", SDL_WINDOWPOS_UNDEFINED,
                             SDL_WINDOWPOS_UNDEFINED, width, height,
@@ -77,48 +81,50 @@ state::state(int width, int height)
   shader vert_shader{"src/vert.glsl", GL_VERTEX_SHADER};
   shader frag_shader{"src/frag.glsl", GL_FRAGMENT_SHADER};
 
-  shader_program shader_program{};
-
   vert_shader.compile();
   frag_shader.compile();
 
-  shader_program.attach(vert_shader);
-  shader_program.attach(frag_shader);
+  program = std::make_unique<shader_program>();
+  program->attach(vert_shader);
+  program->attach(frag_shader);
 
-  shader_program.link();
+  program->link();
 
   GLuint buffer{};
   glCreateBuffers(1, &buffer);
   glNamedBufferData(buffer, VERTICES.size() * sizeof(float), VERTICES.data(),
                     GL_STATIC_DRAW);
 
-  GLuint vertex_array{};
-  glCreateVertexArrays(1, &vertex_array);
+  vao = 0;
+  glCreateVertexArrays(1, &vao);
 
-  glEnableVertexArrayAttrib(vertex_array, 0);
+  glEnableVertexArrayAttrib(vao, 0);
 
   const GLuint buffer_binding_index = 0;
-  glVertexArrayVertexBuffer(vertex_array, buffer_binding_index, buffer, 0,
+  glVertexArrayVertexBuffer(vao, buffer_binding_index, buffer, 0,
                             3 * sizeof(GLfloat));
 
-  glVertexArrayAttribFormat(vertex_array, 0, 3, GL_FLOAT, GL_FALSE, 0);
-  glVertexArrayAttribBinding(vertex_array, 0, buffer_binding_index);
-
-  glUseProgram(shader_program.get_id());
-  glBindVertexArray(vertex_array);
-
-  auto view_matrix = cam.view_mat();
-  auto proj_matrix = proj.proj_mat();
-  auto mvp = proj_matrix * view_matrix;
-  shader_program.uniform("mvp", mvp);
+  glVertexArrayAttribFormat(vao, 0, 3, GL_FLOAT, GL_FALSE, 0);
+  glVertexArrayAttribBinding(vao, 0, buffer_binding_index);
 }
 
-auto state::input() -> void {
+auto state::input(double dt) -> void {
   SDL_Event e;
   while (SDL_PollEvent(&e) != 0) {
     switch (e.type) {
     case SDL_QUIT:
       exit = true;
+      break;
+    case SDL_MOUSEMOTION:
+      // TODO Remove following commented line:
+      //std::cout << "[i] " << e.motion.xrel << " " << e.motion.yrel << std::endl;
+      cam.update_hangle((float) e.motion.xrel, dt);
+      //cam.update_vangle((float) e.motion.yrel, dt);
+      break;
+    case SDL_KEYDOWN:
+      if (e.key.keysym.sym == SDLK_ESCAPE) {
+        exit = true;
+      }
     }
   }
 }
@@ -126,6 +132,14 @@ auto state::input() -> void {
 auto state::update(double dt) -> void {}
 
 auto state::render() -> void {
+  glUseProgram(program->get_id());
+  glBindVertexArray(vao);
+
+  auto view_matrix = cam.view_mat();
+  auto proj_matrix = proj.proj_mat();
+  auto mvp = proj_matrix * view_matrix;
+
+  program->uniform("mvp", mvp);
 
   glClear(GL_COLOR_BUFFER_BIT);
   glDrawArrays(GL_TRIANGLES, 0, 3);
