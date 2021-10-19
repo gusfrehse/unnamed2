@@ -4,7 +4,8 @@
 #include <sstream>
 #include <vector>
 
-#include <gl/glew.h>
+#include <GL/glew.h>
+#include <glm/trigonometric.hpp>
 
 #include "shader.h"
 #include "state.h"
@@ -15,7 +16,7 @@
 #define FOVY 90.0F
 #define NEAR_PLANE 0.1F
 #define CAM_SENSITIVITY 0.001F
-#define CAM_SPEED 1.0F
+#define CAM_SPEED 0.01F
 
 // clang-format off
 const std::array<float, 9> VERTICES = {
@@ -27,7 +28,7 @@ const std::array<float, 9> VERTICES = {
 
 state::state(int width, int height)
     : width(width), height(height),
-      proj((float)width / (float)height, FOVY, NEAR_PLANE),
+      proj((float)width / (float)height, glm::radians(FOVY), NEAR_PLANE),
       cam(glm::vec3(0.0F, 0.0F, 0.0F), 0.0F, 0.0F, CAM_SENSITIVITY, CAM_SPEED) {
   if (SDL_Init(SDL_INIT_VIDEO) != 0) {
     std::cerr << "[-] Could not initialize SDL: " << SDL_GetError()
@@ -108,7 +109,7 @@ state::state(int width, int height)
   glVertexArrayAttribBinding(vao, 0, buffer_binding_index);
 }
 
-auto state::input(double dt) -> void {
+auto state::input() -> void {
   SDL_Event e;
   while (SDL_PollEvent(&e) != 0) {
     switch (e.type) {
@@ -116,20 +117,42 @@ auto state::input(double dt) -> void {
       exit = true;
       break;
     case SDL_MOUSEMOTION:
-      // TODO Remove following commented line:
-      //std::cout << "[i] " << e.motion.xrel << " " << e.motion.yrel << std::endl;
-      cam.update_hangle((float) e.motion.xrel, dt);
-      //cam.update_vangle((float) e.motion.yrel, dt);
+      cam.control.hangle((float)e.motion.xrel);
+      cam.control.vangle((float)e.motion.yrel);
       break;
     case SDL_KEYDOWN:
-      if (e.key.keysym.sym == SDLK_ESCAPE) {
+      switch (e.key.keysym.sym) {
+      case SDLK_w:
+      case SDLK_UP:
+        cam.control.forward();
+        break;
+      case SDLK_a:
+      case SDLK_LEFT:
+        cam.control.left();
+        break;
+      case SDLK_s:
+      case SDLK_DOWN:
+        cam.control.backward();
+        break;
+      case SDLK_d:
+      case SDLK_RIGHT:
+        cam.control.right();
+        break;
+      case SDLK_LSHIFT:
+        cam.control.down();
+        break;
+      case SDLK_SPACE:
+        cam.control.up();
+        break;
+      case SDLK_ESCAPE:
         exit = true;
+        break;
       }
     }
   }
 }
 
-auto state::update(double dt) -> void {}
+auto state::update(double dt) -> void { cam.update(dt); }
 
 auto state::render() -> void {
   glUseProgram(program->get_id());
@@ -137,7 +160,8 @@ auto state::render() -> void {
 
   auto view_matrix = cam.view_mat();
   auto proj_matrix = proj.proj_mat();
-  auto mvp = proj_matrix * view_matrix;
+  auto model_matrix = glm::mat4(1.0F);
+  auto mvp = proj_matrix * view_matrix * model_matrix;
 
   program->uniform("mvp", mvp);
 

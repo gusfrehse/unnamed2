@@ -3,7 +3,7 @@
 
 #include <string>
 #include <unordered_map>
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <glm/vec3.hpp>
 #include <glm/mat4x4.hpp>
 

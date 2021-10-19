@@ -1,5 +1,4 @@
-
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <SDL.h>
 #include <iostream>
 
@@ -21,7 +20,7 @@ auto main(int /*unused*/, char** /*unused*/) -> int {
 
     auto dt = (double) (time_now - time_last) * SECONDS_TO_MILLIS / (double) SDL_GetPerformanceFrequency(); // NOLINT 1000.0 are how many milliseconds in 
 
-    s.input(dt);
+    s.input();
     s.update(dt);
     s.render();
   }

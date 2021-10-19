@@ -2,7 +2,7 @@
 #define STATE_H
 #include <memory>
 
-#include <gl/glew.h>
+#include <GL/glew.h>
 #include <SDL.h>
 
 #include "shader.h"
@@ -24,7 +24,7 @@ public:
   state(int width, int height);
 
   auto should_quit() const -> bool;
-  auto input(double dt) -> void;
+  auto input() -> void;
   auto update(double dt) -> void;
   auto render() -> void;
 };
